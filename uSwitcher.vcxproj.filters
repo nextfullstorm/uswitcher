@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="switcher">
+      <UniqueIdentifier>{f5e509aa-f2fb-47e2-a72a-90564817be30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{83a267a4-4a4a-4e41-9b9f-f8578f9df32a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="helpers">
+      <UniqueIdentifier>{63b3be99-810b-472e-8416-8ceec3f1d26d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsDlg.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="AppDlg.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="Switcher.h">
+      <Filter>switcher</Filter>
+    </ClInclude>
+    <ClInclude Include="AeroHelper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClipboardHelper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyboardHelper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsHelper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundHelper.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="VkCodes.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyboardEvent.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="uSwitcher.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\main.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\eng.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\rus.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\eng1.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\rus1.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="uSwitcherApp.cpp">
+      <Filter>switcher</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
