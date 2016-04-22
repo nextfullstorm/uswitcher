@@ -1,6 +1,8 @@
 #pragma once
+#include <vector>
 
-static const wchar_t* vkcodes[] = 
+//static const wchar_t* vkcodes[] = 
+static const std::vector<wchar_t*> vkcodes =
 {
 	L"none",		//							0x00
 	L"LButton",		//#define VK_LBUTTON        0x01
@@ -225,10 +227,10 @@ static const wchar_t* vkcodes[] =
 
 	L"none",				//								0xD8
 	L"none",				//								0xD9
-	L"none",				//								0xDA
+	L"mouse click",			//								0xDA
 
 	L"[{",			// #define VK_OEM_4			 0xDB  //  '[{' for US
-	L"\|",			// #define VK_OEM_5          0xDC  //  '\|' for US
+	L"\\|",			// #define VK_OEM_5          0xDC  //  '\|' for US
 	L"]}",			// #define VK_OEM_6          0xDD  //  ']}' for US
 	L"\'\"",		// #define VK_OEM_7          0xDE  //  ''"' for US
 	L"none",		// #define VK_OEM_8          0xDF

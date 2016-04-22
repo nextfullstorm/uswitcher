@@ -100,22 +100,10 @@ struct KeyboardEvent
 		return cnt;
 	}
 
-	void Dump()
-	{
-		LOG("code " << _vkCode << ", lalt " << _bLAlt << ", ralt " << _bRAlt << ", lctrl " << _bLCtrl << ", rctrl " << _bRCtrl);
-	}
-
-	std::wstring DumpStr()
-	{
-		std::wostringstream res;
-		res << "code 0x" << std::hex << _vkCode << ", lalt " << _bLAlt << ", ralt " << _bRAlt << ", lctrl " <<
-			_bLCtrl << ", rctrl " << _bRCtrl << ", lshift " << _bLShift << ", rshift " << _bRShift;
-		return res.str();
-	}
-
 	std::wstring ToString()
 	{
 		std::wstring res;
+
 		if (_bRAlt) res = res + std::wstring(vkcodes[VK_RMENU]) + L" + ";
 		if (_bLAlt) res = res + std::wstring(vkcodes[VK_LMENU]) + L" + ";
 		if (_bRCtrl) res = res + std::wstring(vkcodes[VK_RCONTROL]) + L" + ";
@@ -124,7 +112,11 @@ struct KeyboardEvent
 		if (_bRShift) res = res + std::wstring(vkcodes[VK_RSHIFT]) + L" + ";
 		if (_bRWin) res = res + std::wstring(vkcodes[VK_RWIN]) + L" + ";
 		if (_bLWin) res = res + std::wstring(vkcodes[VK_LWIN]) + L" + ";
-		if (_vkCode) res = res + std::wstring(vkcodes[_vkCode]) + L" + ";
+
+		if (_vkCode < vkcodes.size() && _vkCode >= 0)
+			res = res + std::wstring(vkcodes[_vkCode]) + L" + ";
+		else res = res + L"unknown" + L" + ";
+
 		res.erase(res.rfind(L" + "));
 
 		return res;

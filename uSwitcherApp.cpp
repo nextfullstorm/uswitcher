@@ -33,7 +33,8 @@ LRESULT CALLBACK SwitcherKeyboardHook(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK SwitcherMouseHook(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	if (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN)
+	if (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN ||
+		wParam == WM_LBUTTONDBLCLK || wParam == WM_RBUTTONDBLCLK || wParam == WM_MBUTTONDBLCLK)
 		g_switcher->BeginNewWord();
 
 	return CallNextHookEx(g_hMouseHook, nCode, wParam, lParam);

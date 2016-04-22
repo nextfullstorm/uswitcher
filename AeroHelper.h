@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 
-typedef struct COLORIZATIONPARAMS
+struct COLORIZATIONPARAMS
 {
 	COLORREF         clrColor;          //ColorizationColor
 	COLORREF         clrAftGlow;	   //ColorizationAfterglow

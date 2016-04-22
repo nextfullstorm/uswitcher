@@ -1,13 +1,12 @@
 #pragma once
 
 #define WINVER 0x0501
-#include <winuser.rh> // for OCR_*
 #include <windows.h>
-
+#include <winuser.rh> // for OCR_*
+#include <memory>
 #include "resource.h"
 #include "OptionsDlg.h"
 #include "Switcher.h"
-#include <memory>
 #include "AeroHelper.h"
 
 

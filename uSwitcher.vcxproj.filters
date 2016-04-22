@@ -60,6 +60,15 @@
     <ClInclude Include="KeyboardEvent.h">
       <Filter>helpers</Filter>
     </ClInclude>
+    <ClInclude Include="SelectionConverter.h">
+      <Filter>switcher</Filter>
+    </ClInclude>
+    <ClInclude Include="LastWordConverter.h">
+      <Filter>switcher</Filter>
+    </ClInclude>
+    <ClInclude Include="SwitchLang.h">
+      <Filter>helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="uSwitcher.rc">

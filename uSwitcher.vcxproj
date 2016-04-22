@@ -166,14 +166,17 @@
     <ClInclude Include="AeroHelper.h" />
     <ClInclude Include="AppDlg.h" />
     <ClInclude Include="KeyboardEvent.h" />
+    <ClInclude Include="LastWordConverter.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="OptionsHelper.h" />
+    <ClInclude Include="SelectionConverter.h" />
     <ClInclude Include="SoundHelper.h" />
     <ClInclude Include="Switcher.h" />
     <ClInclude Include="ClipboardHelper.h" />
     <ClInclude Include="KeyboardHelper.h" />
     <ClInclude Include="OptionsDlg.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SwitchLang.h" />
     <ClInclude Include="VkCodes.h" />
   </ItemGroup>
   <ItemGroup>

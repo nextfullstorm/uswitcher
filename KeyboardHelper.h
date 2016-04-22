@@ -220,7 +220,7 @@ public:
 		_vinp.clear();
 	}
 
-	void ReleaseKey(KeyboardEvent& ke)
+	void UnpressKey(KeyboardEvent& ke)
 	{
 		if (ke._vkCode != VK_RSHIFT && 
 			ke._vkCode != VK_LSHIFT &&
