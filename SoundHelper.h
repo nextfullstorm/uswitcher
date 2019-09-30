@@ -9,7 +9,7 @@ class SoundHelper
 {
 
 public:
-	SoundHelper(std::wstring sFileError, std::wstring sFileSwitch) : _sFileError(sFileError), _sFileSwitch(sFileSwitch)
+	SoundHelper(const std::wstring& sFileError, const std::wstring& sFileSwitch) : _sFileError(sFileError), _sFileSwitch(sFileSwitch)
 	{
 
 	}
@@ -18,16 +18,16 @@ public:
 
 	void PlayError()
 	{
-		PlaySoundW(_sFileError.c_str(), NULL, SND_ASYNC | SND_FILENAME | SND_SYSTEM | SND_NODEFAULT);
+		PlaySoundW(_sFileError.c_str(), nullptr, SND_ASYNC | SND_FILENAME | SND_SYSTEM | SND_NODEFAULT);
 	}
 
 	void PlaySwitch()
 	{
-		PlaySoundW(_sFileSwitch.c_str(), NULL, SND_ASYNC | SND_FILENAME | SND_SYSTEM | SND_NODEFAULT);
+		PlaySoundW(_sFileSwitch.c_str(), nullptr, SND_ASYNC | SND_FILENAME | SND_SYSTEM | SND_NODEFAULT);
 	}
 
 protected:
 private:
-	std::wstring _sFileError;
-	std::wstring _sFileSwitch;
+	const std::wstring _sFileError;
+	const std::wstring _sFileSwitch;
 };

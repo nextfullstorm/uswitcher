@@ -4,16 +4,17 @@
 #include <deque>
 #include <string>
 #include <functional>
+#include <thread>
 #include "KeyboardHelper.h"
 #include "OptionsHelper.h"
 #include "log.h"
 #include "SoundHelper.h"
 #include "SelectionConverter.h"
 #include "LastWordConverter.h"
-#include "SwitchLang.h"
+#include "Layouts.h"
+#include <map>
 
-#define BUFFER_LENGTH 1024
-
+using LayoutChangedCallback = std::function<void(const HKL&)>;
 
 class Switcher 
 {
@@ -27,15 +28,56 @@ public:
 	}
 
 	void BeginNewWord() { _lwc.BeginNewWord(); }
-	void Enable() { _bEnabled = true; }
-	void Disable() { _bEnabled = false; }
 	void RecordModeOn() { _bRecordMode = true; _keRecord = KeyboardEvent(); }
 	void RecordModeOff() { _bRecordMode = false; }
 	KeyboardEvent GetRecordedEvent() { return _keRecord; }
 	void HotkeyComboBreaker() { _bHotkeyFlag = false; }
+	HKL GetCurrentLayout() { return _WndLayout; }
+	LayoutChangedCallback _layoutChangedCallback = nullptr;
+
+	void SetLayoutChangedCallback(const LayoutChangedCallback& cb)
+	{
+		_layoutChangedCallback = cb;
+	}
+
+	void Enable()
+	{
+		_bEnabled = true;
+		_WndTrackerLoop = std::thread(&Switcher::WndTrackerProc, this);
+	}
+
+	void Disable()
+	{
+		_bEnabled = false;
+		if (_WndTrackerLoop.joinable()) _WndTrackerLoop.join();
+	}
+
+	void WndTrackerProc()
+	{
+		while (_bEnabled)
+		{
+			POINT p;
+			HWND wnd;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+			if (_oh.IsTrackActiveWndByMouse())
+			{
+				GetCursorPos(&p);
+				wnd = WindowFromPoint(p);
+			}
+			else wnd = GetForegroundWindow();
+
+			if (!IsWindow(wnd)) continue;
+
+			auto pid = GetWindowThreadProcessId(wnd, nullptr);
+			auto newLayout = GetKeyboardLayout(pid);
+			SetWndLayoutValue(newLayout);
+		}
+	}
 
 	// returns true if event processed and no need to call next hook
-	bool ProcessKeyPress(DWORD vkCode, WPARAM wParam, LPARAM lParam)
+	bool ProcessKeyPress(const DWORD vkCode, const WPARAM wParam, const LPARAM lParam)
 	{
 		if (_bRecordMode)
 		{
@@ -67,17 +109,17 @@ public:
 
 		if (ke == _oh.KeySwitchToEn() && _oh.KeySwitchToEn() == _oh.KeySwitchToRu())
 		{
-			return ProcessHotkey(ke, wParam, std::bind(&SwitchLangNext, GetFocusedHandle(GetForegroundWindow())));
+			return ProcessHotkey(ke, wParam, std::bind(&Switcher::SwitchLangNext, this, std::placeholders::_1));
 		}
 
 		if (ke == _oh.KeySwitchToEn())
 		{
-			return ProcessHotkey(ke, wParam, std::bind(&SwitchLangEng, GetFocusedHandle(GetForegroundWindow())));
+			return ProcessHotkey(ke, wParam, std::bind(&Switcher::SwitchLangEng, this, std::placeholders::_1));
 		}
 
 		if (ke == _oh.KeySwitchToRu())
 		{
-			return ProcessHotkey(ke, wParam, std::bind(&SwitchLangRus, GetFocusedHandle(GetForegroundWindow())));
+			return ProcessHotkey(ke, wParam, std::bind(&Switcher::SwitchLangRus, this, std::placeholders::_1));
 		}
 
 		if (ke == _oh.KeySearchInet())
@@ -92,7 +134,7 @@ public:
 		// scroll lock
 		if (ke == KeyboardEvent(VK_SCROLL))
 		{
-			KBDLLHOOKSTRUCT* pKhs = (KBDLLHOOKSTRUCT*)lParam;
+			auto* pKhs = (KBDLLHOOKSTRUCT*)lParam;
 
 			// if we process this
 			if (_oh.IsFlashScrollLock() == false) return false;
@@ -110,14 +152,14 @@ public:
 		// caps lock
 		if (ke == KeyboardEvent(VK_CAPITAL))
 		{
-			KBDLLHOOKSTRUCT* pKhs = (KBDLLHOOKSTRUCT*)lParam;
+			auto* pKhs = (KBDLLHOOKSTRUCT*)lParam;
 
 			if (ke != _oh.KeySwitchToEn() || ke != _oh.KeySwitchToRu()) return false;
 
 			if ((pKhs->flags & LLKHF_INJECTED) != LLKHF_INJECTED)
 			{
-				if (ke != _oh.KeySwitchToEn()) return ProcessHotkey(ke, wParam, std::bind(&SwitchLangEng, std::placeholders::_1));
-				if (ke != _oh.KeySwitchToRu()) return ProcessHotkey(ke, wParam, std::bind(&SwitchLangRus, std::placeholders::_1));
+				if (ke != _oh.KeySwitchToEn()) return ProcessHotkey(ke, wParam, std::bind(&Switcher::SwitchLangEng, this, std::placeholders::_1));
+				if (ke != _oh.KeySwitchToRu()) return ProcessHotkey(ke, wParam, std::bind(&Switcher::SwitchLangRus, this, std::placeholders::_1));
 			}
 		}
 
@@ -137,8 +179,20 @@ private:
 	SelectionConverter _sc;
 	bool _bHotkeyFlag = false;
 	LastWordConverter _lwc;
+	std::thread _WndTrackerLoop;
+	HKL _WndLayout = nullptr;
+	std::vector<std::wstring> _OfficeBlacklist = { 
+		L"OpusApp", L"XLMAIN", L"PPTFrameClass", L"VISIOA", L"HwndWrapper[DefaultDomain" };
 
-	bool ProcessHotkey(KeyboardEvent& ke, WPARAM wParam, std::function<void(HWND)> fWorker)
+	void SetWndLayoutValue(const HKL newLayout)
+	{
+		const auto backup = _WndLayout;
+		_WndLayout = newLayout;
+
+		if (_layoutChangedCallback != nullptr && backup != newLayout) _layoutChangedCallback(_WndLayout);
+	}
+
+	bool ProcessHotkey(const KeyboardEvent& ke, const WPARAM wParam, const std::function<void(HWND)>& fWorker)
 	{
 		// так не работает, потому что для хоткеев с модификатором и кодом приходят сообщения раздельно и этот код работает только если отпускать кнопки в нужном порядке
 		/*
@@ -177,17 +231,17 @@ private:
 			}
 		}
 
-		fWorker(GetForegroundWindow());
+		auto hwnd = GetForegroundWindow();
+		if (IsWindow(hwnd)) fWorker(hwnd);
 
 		_bHotkeyFlag = false;
 
 		if (ke.Modified() && ke._vkCode == 0) return false;
-		return true;
 
-		return false;
+		return true;
 	}
 
-	void ConvertLastWord(HWND hWnd)
+	void ConvertLastWord(const HWND hWnd)
 	{
 		LOG("converting last word");
 
@@ -195,7 +249,7 @@ private:
 
 		_kh.UnpressKey(_oh.KeyConvertLast());
 
-		if (_lwc.ConvertLastWord(wndFocused) == false)
+		if (_lwc.ConvertLastWord(wndFocused, std::bind(&Switcher::SwitchLangNext, this, std::placeholders::_1)) == false)
 		{
 			if (_oh.IsPlaySound()) _sh.PlayError();
 		}
@@ -205,7 +259,7 @@ private:
 		}
 	}
 
-	void ConvertSelection(HWND hWnd)
+	void ConvertSelection(const HWND hWnd)
 	{
 		LOG("converting selection");
 
@@ -225,28 +279,26 @@ private:
 		SwitchLangNext(wndFocused);
 
 		_lwc.BeginNewWord();
-
-		return;
 	}
 
-	HWND GetFocusedHandle(HWND wndForeground)
+	HWND GetFocusedHandle(const HWND wndForeground)
 	{
-		int  idActive = GetWindowThreadProcessId(wndForeground, NULL);
-		if (AttachThreadInput(GetCurrentThreadId(), idActive, TRUE) == NULL) return wndForeground;
+		int  idActive = GetWindowThreadProcessId(wndForeground, nullptr);
 
-		HWND wndFocused = GetFocus();
+		// вот тут https://social.msdn.microsoft.com/Forums/windowsserver/en-US/ee25af6a-e109-4500-bc2e-24fcc4838b0e/getfocus-returns-null-for-ms-word-and-may-be-in-other-office-apps?forum=vcgeneral
+		// советуют не использовать AttachThreadInput попусту, а советуют GetGUIThreadInfo
 
-		AttachThreadInput(GetCurrentThreadId(), idActive, FALSE);
+		GUITHREADINFO gti = { 0 };
+		gti.cbSize = sizeof(GUITHREADINFO);
+		if (GetGUIThreadInfo(idActive, &gti) == NULL) return wndForeground;
 
-		if (IsWindow(wndFocused) == FALSE)
-		{
+		if (IsWindow(gti.hwndFocus) == FALSE)
 			return wndForeground;
-		}
 
-		return wndFocused;
+		return gti.hwndFocus;
 	}
 
-	void SearchInet(HWND hwnd)
+	void SearchInet(const HWND hwnd)
 	{
 		auto Query = _oh.SearchQuery();
 		if (Query.find(L"http://") == std::wstring::npos)
@@ -268,8 +320,98 @@ private:
 
 		LOG("starting inet search: " << Query);
 
-		ShellExecute(GetDesktopWindow(), L"open", Query.c_str(), NULL, NULL, SW_SHOW);
+		ShellExecute(GetDesktopWindow(), L"open", Query.c_str(), nullptr, nullptr, SW_SHOW);
 
 		_lwc.BeginNewWord();
+	}
+
+	std::wstring GetLayoutFriendlyName(const HKL layout)
+	{
+		if (layout == LAYOUT_EN) return L"EN";
+		else if (layout == LAYOUT_RU) return L"RU";
+		else return L"unknown";
+	}
+
+	void SwitchLang(const HWND hWndFocused, const HKL layout)
+	{
+		LOG("switching_v2 to " << GetLayoutFriendlyName(layout) << " from " << GetLayoutFriendlyName(_WndLayout));
+
+		if (_WndLayout != layout)
+		{
+			KeyboardEvent ke;
+			ke._vkCode = VK_SPACE;
+			ke._bLWin = true;
+			_kh.PressAndReleaseKey(ke);
+		}
+		
+		/*
+		if (_oh.IsOfficeWorkaroundEnabled())
+		{
+			auto parentWnd = FindParent(hWndFocused);
+
+			wchar_t className[128] = { 0 };
+			GetClassName(parentWnd, className, 128 - 1);
+			std::wstring clName(className);
+
+			LOG("office workaround: class name " << className);
+
+			for (const auto& x : _OfficeBlacklist)
+			{
+				if (string_starts_with(clName, x))
+				{
+					if (_WndLayout != layout)
+					{
+						KeyboardEvent ke;
+						ke._vkCode = VK_SPACE;
+						ke._bLWin = true;
+						_kh.PressAndReleaseKey(ke);
+					}
+
+					return;
+				}
+			}
+		}
+
+		LOG("classic switch");
+		if (layout != nullptr) SetWndLayoutValue(layout);
+		PostMessage(hWndFocused, WM_INPUTLANGCHANGEREQUEST, 0, reinterpret_cast<LPARAM>(layout));*/
+	}
+
+	// hWndFocused - foreground window
+	void SwitchLangNext(const HWND hWndFocused)
+	{
+		SwitchLang(hWndFocused, nullptr);
+		Sleep(100);
+	}
+
+	// hWndFocused - foreground window
+	void SwitchLangRus(const HWND hWndFocused)
+	{
+		SwitchLang(hWndFocused, LAYOUT_RU);
+	}
+
+	// hWndFocused - foreground window
+	void SwitchLangEng(const HWND hWndFocused)
+	{
+		SwitchLang(hWndFocused, LAYOUT_EN);
+	}
+
+	static HWND FindParent(HWND h)
+	{
+		auto tmp = GetParent(h);
+		if (tmp == NULL) return h;
+
+		while (true)
+		{
+			auto parent = GetParent(tmp);
+			if (parent != NULL) tmp = parent;
+			else return tmp;
+		}
+	}
+
+	static bool string_starts_with(std::wstring const & value, std::wstring const & starts)
+	{
+		if (starts.size() > value.size()) return false;
+		return std::equal(starts.begin(), starts.end(), value.begin());
 	}
 };

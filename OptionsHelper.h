@@ -92,7 +92,7 @@ public:
 	}
 
 	KeyboardEvent KeyConvertLast() const { return _keConvLast; }
-	void SetKeyConvertLast(KeyboardEvent val) { _keConvLast = val; }
+	void SetKeyConvertLast(const KeyboardEvent& val) { _keConvLast = val; }
 
 	bool IsConvertSelection()
 	{
@@ -100,7 +100,7 @@ public:
 	}
 
 	KeyboardEvent KeyConvertSelection() const { return _keConvSelect; }
-	void SetKeyConvertSelection(KeyboardEvent val) { _keConvSelect = val; }
+	void SetKeyConvertSelection(const KeyboardEvent& val) { _keConvSelect = val; }
 
 	bool IsSwitchToRu()
 	{
@@ -108,7 +108,7 @@ public:
 	}
 
 	KeyboardEvent KeySwitchToRu() const { return _keSwitchToRu; }
-	void SetKeySwitchToRu(KeyboardEvent val) { _keSwitchToRu = val; }
+	void SetKeySwitchToRu(const KeyboardEvent& val) { _keSwitchToRu = val; }
 
 	bool IsSwitchToEn()
 	{
@@ -116,7 +116,7 @@ public:
 	}
 
 	KeyboardEvent KeySwitchToEn() const { return _keSwitchToEn; }
-	void SetKeySwitchToEn(KeyboardEvent val) { _keSwitchToEn = val; }
+	void SetKeySwitchToEn(const KeyboardEvent& val) { _keSwitchToEn = val; }
 
 	bool IsSearchInet()
 	{
@@ -124,7 +124,7 @@ public:
 	}
 
 	KeyboardEvent KeySearchInet() const { return _keSearchInet; }
-	void SetKeySearchInet(KeyboardEvent val) { _keSearchInet = val; }
+	void SetKeySearchInet(const KeyboardEvent& val) { _keSearchInet = val; }
 
 	bool IsChangeMousePointer() const { return _bIsChangeMousePointer; }
 	void SetChangeMousePointer(bool val) { _bIsChangeMousePointer = val; }
@@ -139,13 +139,16 @@ public:
 	void SetChangeColor(bool val) { _bIsChangeColor = val; }
 
 	std::wstring SearchQuery() const { return _sSearchQuery; }
-	void SetSearchQuery(std::wstring val) { _sSearchQuery = val; }
+	void SetSearchQuery(const std::wstring& val) { _sSearchQuery = std::move(val); }
 
 	bool IsTrackActiveWndByMouse() const { return _bTrackActiveWndByMouse; }
 	void SetTrackActiveWndByMouse(bool val) { _bTrackActiveWndByMouse = val; }
 
 	bool IsAutostart() const { return _bIsAutostart; }
 	void SetAutostart(bool val) { _bIsAutostart = val; }
+
+	bool IsOfficeWorkaroundEnabled() const { return true; }
+	void SetOfficeWorkaroundEnabled(bool val) { ; }
 
 private:
 	inline bool ConvertBool(wchar_t* wcStr)
@@ -219,7 +222,8 @@ private:
 			L"Software\\Microsoft\\Windows\\CurrentVersion\\Run",
 			0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
 		{
-			RegSetValueEx(hKey, L"uSwitcher", 0, REG_SZ, (BYTE *)_wsExeFile.c_str(), _wsExeFile.length());
+			if (_wsExeFile.empty() == false)
+				RegSetValueEx(hKey, L"uSwitcher", 0, REG_SZ, (BYTE *)_wsExeFile.c_str(), _wsExeFile.length() * sizeof(_wsExeFile[0]));
 			RegCloseKey(hKey);
 		}
 	}

@@ -3,8 +3,6 @@
 #include <deque>
 #include "KeyboardHelper.h"
 #include "SoundHelper.h"
-#include "SwitchLang.h"
-
 
 class LastWordConverter
 {
@@ -13,7 +11,7 @@ public:
 	LastWordConverter() {}
 	~LastWordConverter() {}
 
-	void AppendBuffer(KeyboardEvent& ke)
+	void AppendBuffer(const KeyboardEvent& ke)
 	{
 		// backspace
 		if (ke._vkCode == VK_BACK)
@@ -56,7 +54,8 @@ public:
 			ke == KeyboardEvent(VK_RIGHT))
 			BeginNewWord();
 
-		if (ke == KeyboardEvent(VK_RETURN))
+		// enter, shift-enter, ctrl-enter (messengers and so on)
+		if (/*ke == KeyboardEvent(VK_RETURN)*/ ke._vkCode == VK_RETURN)
 		{
 			LOG("VK_RETURN, new word");
 			BeginNewWord();
@@ -80,7 +79,7 @@ public:
 		}
 	}
 
-	bool ConvertLastWord(HWND wndFocused)
+	bool ConvertLastWord(const HWND wndFocused, std::function<void(const HWND)> cb)
 	{
 		if (_buffer.empty()) return false;
 
@@ -96,7 +95,7 @@ public:
 			if (IsPrintable(x._vkCode)) _kh.PressAndReleaseKey(KeyboardEvent(VK_BACK));
 		}
 
-		SwitchLangNext(wndFocused);
+		cb(wndFocused);
 
 		for (auto& x : _buffer)
 		{
@@ -124,7 +123,7 @@ private:
 	KeyboardHelper _kh;
 	int _cursorPos = 0;
 
-	bool IsPrintable(DWORD vkCode)
+	bool IsPrintable(const DWORD vkCode)
 	{
 		if ((vkCode >= 0x30 && vkCode <= 0x39) ||
 			(vkCode >= 0x41 && vkCode <= 0x5A) ||

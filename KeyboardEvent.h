@@ -65,7 +65,7 @@ struct KeyboardEvent
 		return !((*this) == KeyboardEvent());
 	}
 
-	bool Modified()
+	bool Modified() const
 	{
 		if (/*_bRShift ||
 			_bLShift ||*/
@@ -113,7 +113,7 @@ struct KeyboardEvent
 		if (_bRWin) res = res + std::wstring(vkcodes[VK_RWIN]) + L" + ";
 		if (_bLWin) res = res + std::wstring(vkcodes[VK_LWIN]) + L" + ";
 
-		if (_vkCode < vkcodes.size() && _vkCode >= 0)
+		if (_vkCode < vkcodes.size())
 			res = res + std::wstring(vkcodes[_vkCode]) + L" + ";
 		else res = res + L"unknown" + L" + ";
 

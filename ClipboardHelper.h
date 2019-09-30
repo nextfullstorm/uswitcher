@@ -45,7 +45,7 @@ public:
 		while (uFormat)
 		{
 			hglb = GetClipboardData(uFormat);
-			if (hglb != NULL)
+			if (hglb != nullptr)
 			{
 				hMem = GlobalLock(hglb);
 				SIZE_T size = GlobalSize(hMem);
@@ -53,7 +53,7 @@ public:
 				LOG("Clipboard format " << uFormat << ", size " << size);
 
 				totalSize += size;
-				if (hMem != NULL) GlobalUnlock(hglb);
+				if (hMem != nullptr) GlobalUnlock(hglb);
 			}
 			else
 			{
@@ -104,7 +104,7 @@ public:
 		while (uFormat)
 		{
 			hglb = GetClipboardData(uFormat);
-			if (hglb != NULL)
+			if (hglb != nullptr)
 			{
 				hMem = GlobalLock(hglb);
 				SIZE_T size = GlobalSize(hMem);
@@ -114,11 +114,14 @@ public:
 					clipitem.format = uFormat;
 					clipitem.content = malloc(size);
 					clipitem.size = size;
-					memcpy(clipitem.content, hMem, size);
-					_clipQueue.push(clipitem);
+					if (clipitem.content != nullptr && hMem != nullptr)
+					{
+						memcpy(clipitem.content, hMem, size);
+						_clipQueue.push(clipitem);
+					}
 				}
 
-				if (hMem != NULL) GlobalUnlock(hglb);
+				if (hMem != nullptr) GlobalUnlock(hglb);
 			}
 
 			uFormat = EnumClipboardFormats(uFormat);
@@ -144,7 +147,7 @@ public:
 		{
 			ClipBoardItem& clipitem = _clipQueue.front();
 			HGLOBAL hResult = GlobalAlloc(GMEM_MOVEABLE, clipitem.size);
-			if (hResult == NULL)
+			if (hResult == nullptr)
 			{
 				LOG("GlobalAlloc error " << GetLastError());
 				_clipQueue.pop();
@@ -153,7 +156,7 @@ public:
 			memcpy(GlobalLock(hResult), clipitem.content, clipitem.size);
 			GlobalUnlock(hResult);
 
-			if (SetClipboardData(clipitem.format, hResult) == NULL)
+			if (SetClipboardData(clipitem.format, hResult) == nullptr)
 			{
 				LOG("SetClipboardData error " << GetLastError());
 			}
@@ -193,7 +196,7 @@ public:
 		}
 
 		hglb = GetClipboardData(CF_UNICODETEXT);
-		if (hglb != NULL)
+		if (hglb != nullptr)
 		{
 			hMem = GlobalLock(hglb);
 			SIZE_T size = GlobalSize(hMem);
@@ -202,12 +205,12 @@ public:
 
 			if (size > 0) s.assign((wchar_t *)hMem, size);
 
-			if (hMem != NULL) GlobalUnlock(hglb);
+			if (hMem != nullptr) GlobalUnlock(hglb);
 		}
 		else 
 		{
 			hglb = GetClipboardData(CF_TEXT);
-			if (hglb != NULL)
+			if (hglb != nullptr)
 			{
 				hMem = GlobalLock(hglb);
 				SIZE_T size = GlobalSize(hMem);
@@ -216,7 +219,7 @@ public:
 
 				if (size > 0) s.assign((wchar_t *)hMem, size);
 
-				if (hMem != NULL) GlobalUnlock(hglb);
+				if (hMem != nullptr) GlobalUnlock(hglb);
 			}
 			else LOG("GetClipboardData(CF_TEXT) failed " << GetLastError());
 		}
@@ -241,7 +244,7 @@ public:
 		EmptyClipboard();
 
 		HGLOBAL hResult = GlobalAlloc(GMEM_MOVEABLE, str.length()*sizeof(str[0]));
-		if (hResult == NULL)
+		if (hResult == nullptr)
 		{
 			LOG("GlobalAlloc error " << GetLastError());
 			CloseClipboard();
@@ -251,7 +254,7 @@ public:
 		memcpy(GlobalLock(hResult), str.data(), str.length()*sizeof(str[0]));
 		GlobalUnlock(hResult);
 
-		if (SetClipboardData(CF_UNICODETEXT, hResult) == NULL)
+		if (SetClipboardData(CF_UNICODETEXT, hResult) == nullptr)
 		{
 			LOG("SetClipboardData error " << GetLastError());
 		}

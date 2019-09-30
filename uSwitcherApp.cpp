@@ -12,12 +12,13 @@ HHOOK g_hKbdHook;
 HHOOK g_hMouseHook;
 std::unique_ptr<Switcher> g_switcher;
 bool g_bHookActive;
+bool globalDebugFlag = true;
 
 LRESULT CALLBACK SwitcherKeyboardHook(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	if (g_bHookActive && nCode == HC_ACTION)
 	{
-		KBDLLHOOKSTRUCT *ks = (KBDLLHOOKSTRUCT*)lParam;
+		auto *ks = (KBDLLHOOKSTRUCT*)lParam;
 		bool bProcessed = false;
 
 		g_bHookActive = false;
@@ -35,29 +36,34 @@ LRESULT CALLBACK SwitcherMouseHook(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	if (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN ||
 		wParam == WM_LBUTTONDBLCLK || wParam == WM_RBUTTONDBLCLK || wParam == WM_MBUTTONDBLCLK)
+	{
 		g_switcher->BeginNewWord();
+		g_switcher->ProcessKeyPress(0xDA, WM_KEYDOWN, lParam);
+		g_switcher->ProcessKeyPress(0xDA, WM_KEYUP, lParam);
+		// эмулируем нажатие кнопки для switcher. если хоткей установлен как rctrl, например, а мы нажимаем ctrl-лкм, то срабатывает событие хоткея, хотя и не должно.
+	}
 
 	return CallNextHookEx(g_hMouseHook, nCode, wParam, lParam);
 }
 
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-	std::wstring wsIni(512, 0);
-	GetModuleFileName(hInstance, &wsIni[0], 511);
-	PathRemoveExtension(&wsIni[0]);
-	wcscat(&wsIni[0], L".ini");
+	wchar_t wsIni[512] = { 0 };
+	GetModuleFileName(hInstance, wsIni, 511);
+	PathRemoveExtension(wsIni);
+	wcscat(wsIni, L".ini");
 
-	std::wstring wcRunPath(512, 0);
-	GetModuleFileName(hInstance, &wcRunPath[0], 511);
-	PathRemoveFileSpecW(&wcRunPath[0]);
+	wchar_t wcRunPath[512] = { 0 };
+	GetModuleFileName(hInstance, wcRunPath, 511);
+	PathRemoveFileSpecW(wcRunPath);
 
-	std::wstring wcExe(512, 0);
+	wchar_t wcExe[512] = { 0 };
 	GetModuleFileName(hInstance, &wcExe[0], 511);
 
 	OptionsHelper oh(wsIni, wcExe);
-	SoundHelper sh(wcRunPath + L"\\resources\\error.wav", wcRunPath + L"\\resources\\switch.wav");
+	SoundHelper sh(std::wstring(wcRunPath) + std::wstring(L"\\resources\\error.wav"), std::wstring(wcRunPath) + std::wstring(L"\\resources\\switch.wav"));
 
-	g_switcher = std::unique_ptr<Switcher>(new Switcher(oh, sh));
+	g_switcher = std::make_unique<Switcher>(oh, sh);
 
 	g_bHookActive = true;
 

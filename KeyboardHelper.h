@@ -4,6 +4,7 @@
 #include <vector>
 #include "KeyboardEvent.h"
 #include "log.h"
+#include <thread>
 
 class KeyboardHelper
 {
@@ -18,7 +19,7 @@ public:
 
 	}
 
-	void PressAndReleaseKey(KeyboardEvent& ke)
+	void PressAndReleaseKey(const KeyboardEvent& ke)
 	{
 		if (ke._bRShift)
 		{
@@ -113,7 +114,7 @@ public:
 			INPUT inpDown;
 			inpDown.ki.dwFlags = 0;
 			inpDown.type = INPUT_KEYBOARD;
-			inpDown.ki.wVk = ke._vkCode;
+			inpDown.ki.wVk = static_cast<WORD>(ke._vkCode);
 			inpDown.ki.wScan = 0;
 			inpDown.ki.dwFlags = 0;
 			_vinp.push_back(inpDown);
@@ -121,7 +122,7 @@ public:
 			INPUT inpUp;
 			inpUp.ki.dwFlags = 0;
 			inpUp.type = INPUT_KEYBOARD;
-			inpUp.ki.wVk = ke._vkCode;
+			inpUp.ki.wVk = static_cast<WORD>(ke._vkCode);
 			inpUp.ki.wScan = 0;
 			inpUp.ki.dwFlags = KEYEVENTF_KEYUP;
 			_vinp.push_back(inpUp);
@@ -235,7 +236,7 @@ public:
 			INPUT inpUp;
 			inpUp.ki.dwFlags = 0;
 			inpUp.type = INPUT_KEYBOARD;
-			inpUp.ki.wVk = ke._vkCode;
+			inpUp.ki.wVk = static_cast<WORD>(ke._vkCode);
 			inpUp.ki.wScan = 0;
 			inpUp.ki.dwFlags = KEYEVENTF_KEYUP;
 			_vinp.push_back(inpUp);
@@ -365,7 +366,7 @@ public:
 
 	bool KeyPressed(DWORD vkCode)
 	{
-		return ((GetAsyncKeyState(vkCode) & 0x8000));
+		return ((GetAsyncKeyState(vkCode) & 0x8000) != 0);
 	}
 
 	bool KeyToggled(DWORD vkCode)

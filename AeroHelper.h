@@ -3,12 +3,12 @@
 
 struct COLORIZATIONPARAMS
 {
-	COLORREF         clrColor;          //ColorizationColor
-	COLORREF         clrAftGlow;	   //ColorizationAfterglow
-	UINT             nIntensity;	   //ColorizationColorBalance -> 0-100
-	UINT             clrAftGlowBal;    //ColorizationAfterglowBalance
-	UINT		 clrBlurBal;       //ColorizationBlurBalance
-	UINT		 clrGlassReflInt;  //ColorizationGlassReflectionIntensity
+	COLORREF         clrColor;			//ColorizationColor
+	COLORREF         clrAftGlow;		//ColorizationAfterglow
+	UINT             nIntensity;		//ColorizationColorBalance -> 0-100
+	UINT             clrAftGlowBal;		//ColorizationAfterglowBalance
+	UINT		 clrBlurBal;			//ColorizationBlurBalance
+	UINT		 clrGlassReflInt;		//ColorizationGlassReflectionIntensity
 	BOOL             fOpaque;
 };
 
@@ -22,17 +22,16 @@ public:
 	AeroHelper()
 	{
 		_hDwm = LoadLibrary(L"dwmapi.dll");
-		if (_hDwm == NULL) return;
+		if (_hDwm == nullptr) return;
 
 		*(FARPROC *)&DwmIsCompositionEnabled = GetProcAddress(_hDwm, "DwmIsCompositionEnabled");
 		*(FARPROC *)&DwmGetColorizationParameters = GetProcAddress(_hDwm, (LPCSTR)127);
 		*(FARPROC *)&DwmSetColorizationParameters = GetProcAddress(_hDwm, (LPCSTR)131);
 
-		if (DwmIsCompositionEnabled == NULL || DwmGetColorizationParameters == NULL || DwmSetColorizationParameters == NULL)
+		if (DwmIsCompositionEnabled == nullptr || DwmGetColorizationParameters == nullptr || DwmSetColorizationParameters == nullptr)
 			return;
 
-		if (IsDwmEnabled())
-			DwmGetColorizationParameters(&_cpBackup);
+		if (IsDwmEnabled()) DwmGetColorizationParameters(&_cpBackup);
 
 		_bOk = true;
 	}
@@ -58,12 +57,11 @@ public:
 
 	void RestoreColor()
 	{
-		if (IsDwmEnabled())
-			DwmSetColorizationParameters(&_cpBackup, 0);
+		if (IsDwmEnabled()) DwmSetColorizationParameters(&_cpBackup, 0);
 	}
 
 private:
-	HMODULE _hDwm = NULL;
+	HMODULE _hDwm = nullptr;
 	bool _bOk = false;
 	COLORIZATIONPARAMS _cpBackup;
 

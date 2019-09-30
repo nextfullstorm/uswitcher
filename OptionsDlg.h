@@ -18,7 +18,7 @@ static const int nTimerId = 5663;
 class OptionsDlg
 {
 public:
-	OptionsDlg(HINSTANCE hInst, OptionsHelper& oh, Switcher& sw) : _oh(oh), _sw(sw)
+	OptionsDlg(const HINSTANCE hInst, OptionsHelper& oh, Switcher& sw) : _oh(oh), _sw(sw)
 	{
 		_hInst = hInst;
 	}
@@ -36,15 +36,15 @@ public:
 		}
 
 		_bShowingDlg = true;
-		DialogBoxParam(_hInst, MAKEINTRESOURCE(IDD_OPTIONS_DLG), NULL,
+		DialogBoxParam(_hInst, MAKEINTRESOURCE(IDD_OPTIONS_DLG), nullptr,
 			reinterpret_cast<DLGPROC>(OptionsDlgWndProc),
 			reinterpret_cast<LPARAM>(this));
 		_bShowingDlg = false;
 	}
 
 private:
-	HWND _hwnd = NULL;
-	HINSTANCE _hInst = NULL;
+	HWND _hwnd = nullptr;
+	HINSTANCE _hInst = nullptr;
 	bool _bShowingDlg = false;
 	OptionsHelper& _oh;
 	Switcher& _sw;
@@ -56,7 +56,7 @@ private:
 private:
 	static LRESULT CALLBACK OptionsDlgWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		OptionsDlg* pThis = reinterpret_cast<OptionsDlg*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+		auto* pThis = reinterpret_cast<OptionsDlg*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
 		switch (message)
 		{
@@ -66,7 +66,7 @@ private:
 			pThis = reinterpret_cast<OptionsDlg*>(lParam);
 
 			pThis->_hwnd = hWnd;
-			SetClassLongPtr(hWnd, GCLP_HICON, reinterpret_cast<LONG>(LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAIN_ICON))));
+			SetClassLongPtr(hWnd, GCLP_HICON, reinterpret_cast<LONG>(LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_MAIN_ICON))));
 
 			LOGFONT lf = { 0 };
 			lf.lfHeight = 40;
@@ -181,7 +181,7 @@ private:
 		return FALSE;
 	}
 
-	void OnPressRec(int nCtrlIdButton, int nCtrlIdEdit)
+	void OnPressRec(const int nCtrlIdButton, const int nCtrlIdEdit)
 	{
 		if (_bRec == false)
 		{
@@ -201,7 +201,7 @@ private:
 			_nButtonId = nCtrlIdButton;
 			_nEditId = nCtrlIdEdit;
 
-			SetTimer(_hwnd, nTimerId, 1000, 0);
+			SetTimer(_hwnd, nTimerId, 1000, nullptr);
 		}
 		else
 		{
@@ -229,6 +229,8 @@ private:
 
 	void LoadSettings()
 	{
+		_oh.LoadOptions();
+
 		if (_oh.IsAutostart()) CheckDlgButton(_hwnd, IDC_ISAUTOSTART, TRUE);
 		if (_oh.IsChangeColor()) CheckDlgButton(_hwnd, IDC_ISCHANGECOLOR, TRUE);
 		if (_oh.IsChangeMousePointer()) CheckDlgButton(_hwnd, IDC_ISMOUSECURSOR, TRUE);
@@ -247,15 +249,18 @@ private:
 		_hks[IDC_HK_EN] = _oh.KeySwitchToEn();
 		_hks[IDC_HK_RU] = _oh.KeySwitchToRu();
 		_hks[IDC_HK_SEARCH] = _oh.KeySearchInet();
+
+		CheckDlgButton(_hwnd, IDC_CURSORACTIVEWIN, !(_oh.IsTrackActiveWndByMouse()));
+		CheckDlgButton(_hwnd, IDC_CURSORANYWIN, _oh.IsTrackActiveWndByMouse());
 	}
 
 	void SaveSettings()
 	{
-		_oh.SetAutostart(IsDlgButtonChecked(_hwnd, IDC_ISAUTOSTART));
-		_oh.SetChangeColor(IsDlgButtonChecked(_hwnd, IDC_ISCHANGECOLOR));
-		_oh.SetChangeMousePointer(IsDlgButtonChecked(_hwnd, IDC_ISMOUSECURSOR));
-		_oh.SetFlashScrollLock(IsDlgButtonChecked(_hwnd, IDC_ISSCROLLLOCK));
-		_oh.SetPlaySound(IsDlgButtonChecked(_hwnd, IDC_ISSOUND));
+		_oh.SetAutostart(IsDlgButtonChecked(_hwnd, IDC_ISAUTOSTART) == BST_CHECKED);
+		_oh.SetChangeColor(IsDlgButtonChecked(_hwnd, IDC_ISCHANGECOLOR) == BST_CHECKED);
+		_oh.SetChangeMousePointer(IsDlgButtonChecked(_hwnd, IDC_ISMOUSECURSOR) == BST_CHECKED);
+		_oh.SetFlashScrollLock(IsDlgButtonChecked(_hwnd, IDC_ISSCROLLLOCK) == BST_CHECKED);
+		_oh.SetPlaySound(IsDlgButtonChecked(_hwnd, IDC_ISSOUND) == BST_CHECKED);
 
 		std::wstring wsTxt;
 		wsTxt.resize(200);
@@ -268,12 +273,8 @@ private:
 		_oh.SetKeySwitchToRu(_hks[IDC_HK_RU]);
 		_oh.SetKeySearchInet(_hks[IDC_HK_SEARCH]);
 
+		_oh.SetTrackActiveWndByMouse(IsDlgButtonChecked(_hwnd, IDC_CURSORANYWIN) == BST_CHECKED);
+
 		_oh.SaveOptions();
 	}
 };
-
-
-
-
-
-

@@ -16,7 +16,7 @@ public:
 	}
 
 	// true if success, false on error (to play right sound)
-	bool ConvertSelection(HWND wndFocused)
+	bool ConvertSelection(const HWND wndFocused)
 	{
 		if (IsClassNameEdit(wndFocused))
 			return ConvertSelectionEdit(wndFocused);
@@ -26,7 +26,7 @@ public:
 		return false;
 	}
 
-	std::wstring GetSelectionText(HWND wndFocused)
+	std::wstring GetSelectionText(const HWND wndFocused)
 	{
 		if (IsClassNameEdit(wndFocused))
 			return GetSelectedTextEdit(wndFocused);
@@ -40,12 +40,12 @@ private:
 	const wchar_t* _wcRusKeys = L"¨ÉÖÓÊÅÍÃØÙÇÕÚÔÛÂÀÏĞÎËÄÆİß×ÑÌÈÒÜÁŞ¸éöóêåíãøùçõúôûâàïğîëäæıÿ÷ñìèòüáş\0";
 	const wchar_t* _wcEngKeys = L"~QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>`qwertyuiop[]asdfghjkl;'zxcvbnm,.\0";
 
-	bool IsClassNameEdit(HWND wndFocused)
+	bool IsClassNameEdit(const HWND wndFocused)
 	{
-		wchar_t wcClassName[100];
-		GetClassName(wndFocused, wcClassName, 99);
+		wchar_t wcClassName[128];
+		GetClassName(wndFocused, wcClassName, 128 - 1);
 
-		if (wcsnicmp(wcClassName, L"Edit", 4) == 0)
+		if (_wcsnicmp(wcClassName, L"Edit", 4) == 0)
 			return true;
 
 		return false;
@@ -55,18 +55,18 @@ private:
 	{
 		auto sz = wcslen(_wcRusKeys);
 
-		for (size_t i = 0; i < str.length(); i++)
+		for (wchar_t & i : str)
 		{
 			for (size_t j = 0; j < sz; j++)
 			{
-				if (str[i] == _wcRusKeys[j]) str[i] = _wcEngKeys[j];
+				if (i == _wcRusKeys[j]) i = _wcEngKeys[j];
 				else
-					if (str[i] == _wcEngKeys[j]) str[i] = _wcRusKeys[j];
+					if (i == _wcEngKeys[j]) i = _wcRusKeys[j];
 			}
 		}
 	}
 
-	std::wstring GetSelectedTextEdit(HWND hwndFocused)
+	std::wstring GetSelectedTextEdit(const HWND hwndFocused)
 	{
 		// class name == Edit
 		unsigned int start = 0, next = 0;
@@ -76,7 +76,7 @@ private:
 		if (txtlen == 0)
 		{
 			//if (_oh.IsPlaySound()) _sh.PlayError();
-			return false;
+			return std::wstring();
 		}
 
 		std::wstring wsFullText(txtlen + 1, ' ');
@@ -88,7 +88,7 @@ private:
 		return std::wstring(wsFullText.begin() + start, wsFullText.begin() + next);
 	}
 
-	bool ConvertSelectionEdit(HWND hwndFocused)
+	bool ConvertSelectionEdit(const HWND hwndFocused)
 	{
 		std::wstring wsSelected = GetSelectedTextEdit(hwndFocused);
 
@@ -105,7 +105,7 @@ private:
 		return true;
 	}
 
-	std::wstring GetSelectedTextOther(HWND hwndFocused)
+	std::wstring GetSelectedTextOther(const HWND hwndFocused)
 	{
 		if (_ch.BackupClipboard(hwndFocused) == false)
 		{
@@ -141,7 +141,7 @@ private:
 		return _ch.GetClipboardText(hwndFocused);
 	}
 
-	bool ConvertSelectionOther(HWND hwndFocused)
+	bool ConvertSelectionOther(const HWND hwndFocused)
 	{
 		std::wstring wsCbText = GetSelectedTextOther(hwndFocused);
 		LOG("got selected text (via cb): " << wsCbText);
